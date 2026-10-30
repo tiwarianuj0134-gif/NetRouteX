@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101923">
+  <title>NetRoute X — Network Routing Simulator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+  <script defer src="{{ url_for('static', filename='app.js') }}"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#" aria-label="NetRoute X dashboard">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span><strong>NetRoute <b>X</b></strong><small>NETWORK LAB</small></span>
+      </a>
+      <div class="workspace-label">WORKSPACE</div>
+      <nav class="nav-list" aria-label="Main navigation">
+        <button class="nav-item active" data-page="dashboard"><span>◫</span>Overview</button>
+        <button class="nav-item" data-page="topology"><span>⌘</span>Topology</button>
+        <button class="nav-item" data-page="simulation"><span>▶</span>Simulation</button>
+        <button class="nav-item" data-page="algorithms"><span>⇄</span>Algorithm lab</button>
+        <button class="nav-item" data-page="failure"><span>⌁</span>Failure lab</button>
+        <button class="nav-item" data-page="metrics"><span>▥</span>Metrics & reports</button>
+        <button class="nav-item" data-page="docs"><span>ⓘ</span>Quick guide</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="engine-status"><span class="status-dot"></span><span><b>Local engine</b><small id="engine-label">Checking connection…</small></span></div>
+        <div class="sidebar-project">ACADEMIC PROJECT<br><b>Network Packet Routing<br>Between Routers</b></div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="breadcrumb"><span>Network operations</span><b>/</b><strong id="page-crumb">Overview</strong></div>
+        <div class="topbar-actions">
+          <span class="local-badge"><i></i>LOCAL SESSION</span>
+          <button class="icon-button" id="reload-topology" title="Reload selected topology" aria-label="Reload selected topology">↻</button>
+        </div>
+      </header>
+
+      <div class="page-wrap">
+        <section class="page active" id="page-dashboard">
+          <div class="welcome-row">
+            <div><div class="eyebrow">ROUTING & RESILIENCE WORKBENCH</div><h1>Network command center</h1>
+              <p>Explore how routing decisions change as the network evolves.</p></div>
+            <div class="quick-actions">
+              <button class="button secondary" data-nav="topology">Inspect topology</button>
+              <button class="button primary" data-nav="simulation"><span>▶</span> Run simulation</button>
+            </div>
+          </div>
+          <div class="notice-strip"><span class="notice-icon">i</span><span>Educational simulation only. Packets are modeled in Python; nothing is transmitted over a real network.</span><button class="notice-close" id="notice-close" aria-label="Dismiss notice">×</button></div>
+
+          <div class="section-heading"><div><h2>Workspace snapshot</h2><p>Live configuration and the most recent verified run.</p></div><span class="muted" id="snapshot-topology">No topology loaded</span></div>
+          <div class="stat-grid four">
+            <article class="stat-card"><div class="stat-top"><span>ROUTERS</span><span class="stat-icon blue">⌘</span></div><strong id="router-count">—</strong><small>Routing nodes in topology</small></article>
+            <article class="stat-card"><div class="stat-top"><span>END DEVICES</span><span class="stat-icon violet">◉</span></div><strong id="client-count">—</strong><small>Traffic source and destination clients</small></article>
+            <article class="stat-card"><div class="stat-top"><span>ACTIVE LINKS</span><span class="stat-icon green">↔</span></div><strong id="link-count">—</strong><small id="link-count-note">Configured connections</small></article>
+            <article class="stat-card"><div class="stat-top"><span>LAST RUN STATUS</span><span class="stat-icon amber">◷</span></div><strong class="status-value" id="run-status">Idle</strong><small id="run-status-note">No simulation run yet</small></article>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="panel topology-preview">
+              <div class="panel-heading"><div><h2>Topology overview</h2><p>Loaded network structure</p></div><button class="text-button" data-nav="topology">Open topology <span>→</span></button></div>
+              <div class="preview-canvas" id="dashboard-graph"><div class="empty-state">Load a topology to view the network.</div></div>
+              <div class="graph-legend"><span><i class="legend-router"></i>Router</span><span><i class="legend-client"></i>Client</span><span><i class="legend-link"></i>Active link</span></div>
+            </article>
+            <article class="panel run-summary">
+              <div class="panel-heading"><div><h2>Latest result</h2><p>From the real routing engine</p></div><span class="live-pill"><i></i>ENGINE OUTPUT</span></div>
+              <div id="latest-result" class="result-empty"><span class="empty-icon">⌁</span><b>Ready when you are</b><p>Run the network to see observed routes and measured metrics.</p><button class="button secondary small" data-nav="simulation">Open simulation controls</button></div>
+            </article>
+          </div>
+          <div class="section-heading lower"><div><h2>Start with a workflow</h2><p>Each action runs against the selected topology.</p></div></div>
+          <div class="workflow-grid">
+            <button class="workflow-card" data-nav="topology"><span class="workflow-icon blue">⌘</span><span><b>Explore topology</b><small>Inspect nodes, directional costs, and link states.</small></span><i>→</i></button>
+            <button class="workflow-card" data-nav="algorithms"><span class="workflow-icon violet">⇄</span><span><b>Compare algorithms</b><small>Run DV and LS separately on the same graph.</small></span><i>→</i></button>
+            <button class="workflow-card" data-nav="failure"><span class="workflow-icon amber">⌁</span><span><b>Test resilience</b><small>Take a link down and observe the actual result.</small></span><i>→</i></button>
+          </div>
+        </section>
+
+        <section class="page" id="page-topology">
+          <div class="page-title-row"><div><div class="eyebrow">NETWORK STRUCTURE</div><h1>Topology explorer</h1><p>Inspect nodes and links from the selected JSON configuration.</p></div>
+            <div class="topology-load-controls"><label class="select-wrap"><span class="sr-only">Select topology</span><select id="topology-select"></select></label><button class="button secondary" id="load-demo">Load demo topology</button><label class="button secondary file-button">Upload JSON<input id="topology-file" type="file" accept=".json,application/json"></label></div>
+          </div>
+          <div class="topology-toolbar panel"><div class="topology-meta"><span class="state-badge" id="topology-validity"><i></i>Validated</span><span id="topology-size">—</span></div><div class="toolbar-actions"><button class="icon-button" id="zoom-out" title="Zoom out">−</button><button class="icon-button" id="zoom-in" title="Zoom in">+</button><button class="button secondary small" id="fit-graph">Fit to screen</button><button class="button secondary small" id="save-topology">Export topology JSON</button></div></div>
+          <div class="topology-layout">
+            <article class="panel topology-panel"><div class="panel-heading"><div><h2>Network map</h2><p>Drag empty space to pan · Scroll to zoom · Select a node or link for details</p></div><span class="map-count" id="map-state">Awaiting topology</span></div>
+              <div class="network-canvas-wrap"><svg id="network-svg" role="img" aria-label="Interactive network topology"></svg><div id="graph-empty" class="empty-state">Choose a topology to draw its network.</div></div>
+              <div class="graph-legend"><span><i class="legend-router"></i>Router</span><span><i class="legend-client"></i>Client</span><span><i class="legend-link"></i>Active</span><span><i class="legend-failed"></i>Down</span><span><i class="legend-route"></i>Selected path</span></div>
+            </article>
+            <aside class="panel inspector-panel"><div class="inspector-header"><span class="eyebrow">INSPECTOR</span><span class="inspector-tag" id="inspector-type">NETWORK</span></div><div id="inspector-content" class="inspector-content"><span class="empty-icon">⌖</span><b>Select a node or link</b><p>Details from the loaded topology and most recent run appear here.</p></div></aside>
+          </div>
+          <article class="panel event-panel configured-events-panel"><div class="panel-heading"><div><h2>Configured link events</h2><p>Scheduled topology changes, in the simulator’s configured time units.</p></div></div><div id="configured-events" class="timeline-empty">Load a topology to inspect its scheduled events.</div></article>
+          <div class="topology-footnote">Topology editing is not enabled. Use a copy of a JSON topology and the explicit export action to preserve the original files.</div>
+        </section>
+
+        <section class="page" id="page-simulation">
+          <div class="page-title-row"><div><div class="eyebrow">ROUTING ENGINE</div><h1>Simulation control</h1><p>Run the selected algorithm through the existing Python simulator.</p></div><span class="state-badge" id="sim-status-badge"><i></i><span>Idle</span></span></div>
+          <div class="control-grid">
+            <article class="panel controls-panel"><div class="panel-heading"><div><h2>Run configuration</h2><p>Each run uses an isolated topology copy.</p></div><span class="step-number">01</span></div>
+              <label class="field-label" for="simulation-topology">Topology</label><select id="simulation-topology" class="field"></select>
+              <label class="field-label" for="algorithm-select">Routing algorithm</label><select id="algorithm-select" class="field"><option value="DV">Distance Vector (DV)</option><option value="LS">Link State (LS)</option></select>
+              <div class="field-row"><div><label class="field-label" for="source-select">Source client</label><select id="source-select" class="field"></select></div><div><label class="field-label" for="destination-select">Destination client</label><select id="destination-select" class="field"></select></div></div>
+              <div class="inline-help">The engine sends traceroutes for each configured client pair. These selectors choose which actual result to spotlight.</div>
+              <div class="control-actions"><button class="button primary full" id="run-button"><span>▶</span> Run simulation</button><button class="button secondary" id="reset-button">Reset view</button></div>
+              <div class="progress-wrap" id="run-progress" hidden><span class="spinner"></span><span>Running the Python routing simulation…</span></div>
+            </article>
+            <article class="panel output-panel"><div class="panel-heading"><div><h2>Packet result</h2><p>Observed traceroute from the simulator</p></div><span class="result-chip" id="result-chip">NO RUN</span></div>
+              <div id="simulation-result" class="result-empty large"><span class="empty-icon">⇢</span><b>No packet result yet</b><p>Start a simulation to see the selected source/destination route.</p></div>
+              <div class="result-metrics" id="simulation-metrics"></div>
+            </article>
+          </div>
+          <article class="panel simulation-map-panel">
+            <div class="panel-heading">
+              <div><h2>Packet journey</h2><p>Animated from the selected route observed by the simulator after the run completes.</p></div>
+              <span class="live-pill"><i></i>OBSERVED PATH</span>
+            </div>
+            <div class="simulation-map-canvas"><svg id="simulation-svg" role="img" aria-label="Animated packet journey on the selected observed route"></svg></div>
+            <p class="animation-status" id="packet-animation-note" aria-live="polite">Run a simulation to animate its observed packet route here.</p>
+          </article>
+          <article class="panel event-panel"><div class="panel-heading"><div><h2>Executed event timeline</h2><p>Events recorded by the routing engine; times are wall-clock seconds from this run, not simulated timestamps.</p></div></div><div id="event-list" class="timeline-empty">No recorded events for this result.</div></article>
+        </section>
+
+        <section class="page" id="page-algorithms">
+          <div class="page-title-row"><div><div class="eyebrow">SIDE-BY-SIDE ANALYSIS</div><h1>Algorithm lab</h1><p>Run both real routing modes independently against the same topology and client workload.</p></div><button class="button primary" id="compare-button"><span>⇄</span> Run comparison</button></div>
+          <div class="comparison-note"><span>i</span><p>DV and LS execute in separate simulator processes using isolated copies. Route cost is summed from the observed route and actual final active link weights. Metrics the engine does not record are labeled “Not measured.”</p></div>
+          <div class="comparison-grid" id="comparison-results"><article class="comparison-card empty-comparison"><span class="empty-icon">⇄</span><b>Comparison not run</b><p>Choose a topology and run both algorithms to compare real output.</p></article></div>
+          <div class="algorithm-explainer">
+            <article class="panel"><span class="algorithm-symbol blue">DV</span><h2>Distance Vector</h2><p>Each router shares its known destination costs with direct neighbors. Routers update a next hop from the neighbor advertisement plus link cost.</p><div class="algorithm-fact"><b>Core idea</b><span>Distributed neighbor updates (Bellman–Ford recurrence)</span></div></article>
+            <article class="panel"><span class="algorithm-symbol violet">LS</span><h2>Link State</h2><p>Routers flood numbered link descriptions. Each router builds a weighted graph and asks NetworkX for the shortest path.</p><div class="algorithm-fact"><b>Core idea</b><span>Topology graph plus weighted shortest-path calculation</span></div></article>
+          </div>
+        </section>
+
+        <section class="page" id="page-failure">
+          <div class="page-title-row"><div><div class="eyebrow">RESILIENCE EXPERIMENT</div><h1>Failure lab</h1><p>Inject a link event into an isolated topology copy and let the routing engine process it.</p></div><span class="lab-tag"><i></i>ISOLATED EXPERIMENT</span></div>
+          <div class="comparison-note"><span>!</span><p>A failure experiment does not recolor the graph only: it creates a validated topology copy, schedules a real time-zero link event, and starts the selected Python routing algorithm. Your source topology file is unchanged.</p></div>
+          <div class="failure-grid">
+            <article class="panel failure-controls"><div class="panel-heading"><div><h2>Experiment setup</h2><p>Start from the selected base topology.</p></div></div>
+              <label class="field-label" for="failure-algorithm">Routing algorithm</label><select id="failure-algorithm" class="field"><option value="DV">Distance Vector (DV)</option><option value="LS">Link State (LS)</option></select>
+              <label class="field-label" for="failure-link">Router link</label><select id="failure-link" class="field"></select>
+              <div class="link-inspection" id="failure-link-info">Load a topology with at least one router-to-router link.</div>
+              <div class="field-row"><div><label class="field-label" for="failure-source">Source client</label><select id="failure-source" class="field"></select></div><div><label class="field-label" for="failure-destination">Destination client</label><select id="failure-destination" class="field"></select></div></div>
+              <button class="button secondary full" id="failure-baseline">Run baseline simulation</button>
+              <div class="failure-action-row"><span id="failure-state-label" class="state-badge"><i></i>Ready</span><button class="button danger" id="failure-action">Take link down</button></div>
+              <div class="progress-wrap" id="failure-progress" hidden><span class="spinner"></span><span>Applying event and running the simulator…</span></div>
+            </article>
+            <article class="panel failure-result"><div class="panel-heading"><div><h2>Before & after</h2><p>Actual selected-pair paths from independent engine runs</p></div></div><div id="failure-comparison" class="result-empty"><span class="empty-icon">⌁</span><b>Baseline needed</b><p>Run a baseline, then take a link down or restore it.</p></div></article>
+          </div>
+          <article class="panel event-panel"><div class="panel-heading"><div><h2>Experiment events</h2><p>Actual event callbacks recorded by the router engine.</p></div></div><div id="failure-events" class="timeline-empty">No failure experiment recorded.</div></article>
+        </section>
+
+        <section class="page" id="page-metrics">
+          <div class="page-title-row"><div><div class="eyebrow">MEASURED OUTPUT</div><h1>Metrics & reports</h1><p>Metrics are computed from observed routes; unrecorded timings are explicitly unavailable.</p></div><div class="toolbar-actions"><button class="button secondary" id="export-json">Export JSON</button><button class="button secondary" id="export-csv">Export CSV</button></div></div>
+          <div id="metrics-content"><div class="panel empty-metrics"><span class="empty-icon">▥</span><b>No simulation report yet</b><p>Run a simulation before viewing its measured results.</p><button class="button secondary small" data-nav="simulation">Go to simulation</button></div></div>
+          <article class="panel metric-definitions"><div class="panel-heading"><div><h2>Measurement notes</h2><p>How to interpret this report.</p></div></div><ul><li><b>Delivery ratio</b> = delivered observed client pairs ÷ observed client pairs. Shown as “Not measured” when no pairs are present.</li><li><b>Average hops</b> and <b>average route cost</b> use delivered paths only.</li><li><b>Route cost</b> sums directional costs along the actual observed path using the final active link set.</li><li><b>Simulated latency, convergence time, and routing update counts</b> are not measured by the current engine.</li><li><b>Wall-clock runtime</b> is process duration only; it is not packet transit latency or simulated time.</li></ul></article>
+        </section>
+
+        <section class="page" id="page-docs">
+          <div class="page-title-row"><div><div class="eyebrow">GETTING STARTED</div><h1>Quick guide</h1><p>A beginner-friendly guide to the simulator and its controls.</p></div></div>
+          <div class="docs-grid">
+            <article class="panel"><span class="docs-number">01</span><h2>Load a topology</h2><p>Choose one of the JSON examples or upload a topology file. The backend validates node names, links, ports, costs, events, and expected routes. Uploads are kept in memory and are not saved over your files.</p><button class="button secondary small" data-nav="topology">Open topology explorer</button></article>
+            <article class="panel"><span class="docs-number">02</span><h2>Run a simulation</h2><p>Select DV or LS, then choose a client source and destination to spotlight. The Python engine still runs its client-pair traceroute workload. The shown path comes from actual packet callbacks.</p><button class="button secondary small" data-nav="simulation">Open simulation controls</button></article>
+            <article class="panel"><span class="docs-number">03</span><h2>Compare modes</h2><p>Comparison runs DV and LS separately on validated copies of the same topology. This avoids sharing router state. Route paths, hop counts, and costs are derived from returned simulator results.</p><button class="button secondary small" data-nav="algorithms">Open algorithm lab</button></article>
+            <article class="panel"><span class="docs-number">04</span><h2>Test a link failure</h2><p>Choose a router-to-router connection and inject a time-zero link-down or link-up event into a fresh experiment copy. Existing configured topology events are retained.</p><button class="button secondary small" data-nav="failure">Open failure lab</button></article>
+          </div>
+          <article class="panel glossary"><div class="panel-heading"><div><h2>Networking terms</h2><p>Simple explanations for the project presentation.</p></div></div><div class="glossary-grid"><div><b>Router</b><span>Network node that forwards traffic to the next hop.</span></div><div><b>Graph</b><span>Nodes represent devices; weighted edges represent links.</span></div><div><b>Link cost</b><span>Directional weight used to compare routes. In the current simulator it also influences link delay.</span></div><div><b>Next hop</b><span>The adjacent node/port selected for forwarding.</span></div><div><b>Distance Vector</b><span>Routers learn destination costs from their neighbors.</span></div><div><b>Link State</b><span>Routers flood link descriptions and compute paths over a graph.</span></div><div><b>Packet forwarding</b><span>A router reads a packet destination and sends it on the selected outgoing link.</span></div><div><b>Unreachable</b><span>No packet route reached the selected destination in that simulation.</span></div></div></article>
+          <div class="docs-warning"><b>Educational scope</b><span>This project does not send real network traffic and is not a complete or standards-compliant RIP/OSPF implementation.</span></div>
+        </section>
+
+        <footer class="page-footer"><span>NetRoute X <i>·</i> Network Packet Routing Between Routers</span><span>LOCAL SIMULATION <i></i></span></footer>
+      </div>
+    </main>
+  </div>
+  <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>
